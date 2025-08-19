@@ -1,0 +1,99 @@
+{
+  "info": {
+    "name": "Shopping Cart API (Express TS)",
+    "_postman_id": "d3e1a1da-1111-2222-3333-444455556666",
+    "description": "CRUD Products & Orders (Keranjang Belanja) - In-memory demo",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Healthcheck",
+      "request": { "method": "GET", "url": "{{baseUrl}}/" }
+    },
+    {
+      "name": "Products",
+      "item": [
+        {
+          "name": "List Products",
+          "request": { "method": "GET", "url": "{{baseUrl}}/api/products" }
+        },
+        {
+          "name": "Get Product by ID",
+          "request": { "method": "GET", "url": "{{baseUrl}}/api/products/1" }
+        },
+        {
+          "name": "Create Product",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Pulpen\",\n  \"price\": 3000,\n  \"stock\": 20\n}"
+            },
+            "url": "{{baseUrl}}/api/products"
+          }
+        },
+        {
+          "name": "Update Product",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"price\": 2500,\n  \"stock\": 120\n}"
+            },
+            "url": "{{baseUrl}}/api/products/1"
+          }
+        },
+        {
+          "name": "Delete Product",
+          "request": { "method": "DELETE", "url": "{{baseUrl}}/api/products/2" }
+        }
+      ]
+    },
+    {
+      "name": "Orders",
+      "item": [
+        {
+          "name": "List Orders",
+          "request": { "method": "GET", "url": "{{baseUrl}}/api/orders" }
+        },
+        {
+          "name": "Create Order",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"items\": [\n    {\"productId\": 1, \"quantity\": 2},\n    {\"productId\": 2, \"quantity\": 1}\n  ],\n  \"status\": \"PENDING\"\n}"
+            },
+            "url": "{{baseUrl}}/api/orders"
+          }
+        },
+        {
+          "name": "Get Order by ID",
+          "request": { "method": "GET", "url": "{{baseUrl}}/api/orders/1" }
+        },
+        {
+          "name": "Update Order (items & status)",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"items\": [{\"productId\": 1, \"quantity\": 1}],\n  \"status\": \"PAID\"\n}"
+            },
+            "url": "{{baseUrl}}/api/orders/1"
+          }
+        },
+        {
+          "name": "Delete Order",
+          "request": { "method": "DELETE", "url": "{{baseUrl}}/api/orders/1" }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:3000" }
+  ]
+}
