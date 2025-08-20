@@ -1,4 +1,15 @@
+# Dependencies
 node_modules/
+
+# Builds
 dist/
+build/
+
+# Env & local
 .env
+.env.*
 *.log
+
+# Prisma
+prisma/dev.db
+prisma/*.sqlite
