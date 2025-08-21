@@ -1,11 +1,51 @@
 import { Request, Response } from "express";
 import { prisma } from "../prisma";
 
-export const listProducts = async (_: Request, res: Response) => {
-  const data = await prisma.product.findMany({ orderBy: { id: "asc" } });
-  res.json({ success: true, count: data.length, data });
+/**
+ * GET /api/products
+ * Filtering: minPrice, maxPrice, minStock, maxStock
+ * Sorting: sortBy (price|stock|createdAt), order (asc|desc)
+ * Pagination: limit, offset
+ */
+export const listProducts = async (req: Request, res: Response) => {
+  const {
+    minPrice, maxPrice, minStock, maxStock,
+    sortBy, order, limit, offset
+  } = req.query as Record<string, string>;
+
+  const where: any = {};
+  if (minPrice || maxPrice) {
+    where.price = {
+      ...(minPrice ? { gte: Number(minPrice) } : {}),
+      ...(maxPrice ? { lte: Number(maxPrice) } : {}),
+    };
+  }
+  if (minStock || maxStock) {
+    where.stock = {
+      ...(minStock ? { gte: Number(minStock) } : {}),
+      ...(maxStock ? { lte: Number(maxStock) } : {}),
+    };
+  }
+
+  const take = Math.min(Number(limit ?? 10), 100);
+  const skip = Number(offset ?? 0);
+  const allowedSort = ["price", "stock", "createdAt"];
+  const sortField = allowedSort.includes(String(sortBy)) ? String(sortBy) : "createdAt";
+  const sortOrder: "asc" | "desc" = (order === "asc" || order === "desc") ? order : "desc";
+
+  const [data, total] = await Promise.all([
+    prisma.product.findMany({
+      where,
+      orderBy: { [sortField]: sortOrder },
+      skip, take,
+    }),
+    prisma.product.count({ where }),
+  ]);
+
+  res.json({ success: true, meta: { total, limit: take, offset: skip }, data });
 };
 
+// (CRUD dasar tetap ada agar tidak putus dependensi proyekmu)
 export const getProduct = async (req: Request, res: Response) => {
   const id = Number(req.params.id);
   if (Number.isNaN(id)) return res.status(400).json({ success: false, message: "Invalid id" });

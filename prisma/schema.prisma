@@ -22,15 +22,34 @@ model User {
   name      String
   createdAt DateTime @default(now())
   posts     Post[]
+  orders    Order[]
 }
 
 model Post {
   id        Int      @id @default(autoincrement())
   title     String
   content   String
+  category  String   @default("general") // <- filter kategori
   published Boolean  @default(false)
   authorId  Int
   author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  comments  Comment[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model Comment {
+  id        Int      @id @default(autoincrement())
+  postId    Int
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  content   String
+  author    String?
+  createdAt DateTime @default(now())
+}
+
+model Order {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
 }

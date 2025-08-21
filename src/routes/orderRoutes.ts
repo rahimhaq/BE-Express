@@ -1,12 +1,8 @@
 import { Router } from "express";
-import { createOrder, deleteOrder, getOrder, listOrders, updateOrder } from "../controllers/orderController";
+import { ordersSummary } from "../controllers/orderController";
 
 const router = Router();
 
-router.get("/", listOrders);
-router.get("/:id", getOrder);
-router.post("/", createOrder);
-router.put("/:id", updateOrder);
-router.delete("/:id", deleteOrder);
+router.get("/summary", ordersSummary); // grouping + pagination (+minCount)
 
 export default router;

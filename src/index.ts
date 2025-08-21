@@ -1,30 +1,22 @@
 import express from "express";
-import bodyParser from "body-parser";
-import postRoutes from "./routes/postRoutes";
+import cors from "cors";
 import productRoutes from "./routes/productRoutes";
 import orderRoutes from "./routes/orderRoutes";
-import userRoutes from "./routes/userRoutes";
 import postPrismaRoutes from "./routes/postPrismaRoutes";
 
 const app = express();
-const PORT = process.env.PORT || 3000;
-
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
+app.use(cors());
+app.use(express.json());
 
 // Healthcheck
-app.get("/", (_, res) => res.json({ message: "API up ✅" }));
+app.get("/", (_req, res) => res.json({ message: "API up ✅" }));
 
 // Mount routes
-app.use("/api/posts", postRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/orders", orderRoutes);
-app.use("/api/users", userRoutes);
-app.use("/api/posts-prisma", postPrismaRoutes);
+app.use("/api/posts", postPrismaRoutes);
 
-// 404 fallback
-app.use((_, res) => res.status(404).json({ success: false, message: "Not Found" }));
-
+const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
 });
