@@ -1,3 +1,4 @@
+// prisma/schema.prisma
 generator client {
   provider = "prisma-client-js"
 }
@@ -7,6 +8,8 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+/* ============ ENTITAS UTAMA ============ */
+
 model Product {
   id        Int      @id @default(autoincrement())
   name      String
@@ -14,22 +17,30 @@ model Product {
   stock     Int
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  supplierProducts SupplierProduct[]
 }
 
 model User {
   id        Int      @id @default(autoincrement())
   email     String   @unique
   name      String
+  points    Int      @default(0)                 // Hari-4 transfer points
   createdAt DateTime @default(now())
+
   posts     Post[]
   orders    Order[]
+
+  // audit transfer (opsional)
+  sentTransfers     Transfer[] @relation("FromUser")
+  receivedTransfers Transfer[] @relation("ToUser")
 }
 
 model Post {
   id        Int      @id @default(autoincrement())
   title     String
   content   String
-  category  String   @default("general") // <- filter kategori
+  category  String   @default("general")         // Hari-3 filter kategori
   published Boolean  @default(false)
   authorId  Int
   author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
@@ -52,4 +63,40 @@ model Order {
   userId    Int
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   createdAt DateTime @default(now())
+}
+
+/* ============ HARI-4: TRANSFER POINTS ============ */
+
+model Transfer {
+  id         Int      @id @default(autoincrement())
+  fromUserId Int
+  toUserId   Int
+  amount     Int
+  createdAt  DateTime @default(now())
+
+  fromUser User @relation("FromUser", fields: [fromUserId], references: [id])
+  toUser   User @relation("ToUser",   fields: [toUserId],   references: [id])
+}
+
+/* ============ HARI-4: SUPPLIERS & STOCKS ============ */
+
+model Supplier {
+  id        Int      @id @default(autoincrement())
+  name      String   @unique
+  createdAt DateTime @default(now())
+
+  products  SupplierProduct[]
+}
+
+model SupplierProduct {
+  id         Int      @id @default(autoincrement())
+  supplierId Int
+  productId  Int
+  stock      Int      @default(0)
+  updatedAt  DateTime @updatedAt
+
+  supplier Supplier @relation(fields: [supplierId], references: [id], onDelete: Cascade)
+  product  Product  @relation(fields: [productId],  references: [id], onDelete: Cascade)
+
+  @@unique([supplierId, productId])
 }
