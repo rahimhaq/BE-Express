@@ -8,7 +8,19 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-/* ============ ENTITAS UTAMA ============ */
+/**
+ * ================= Enums =================
+ */
+
+enum Role {
+  USER
+  ADMIN
+  SUPPLIER
+}
+
+/**
+ * ================ Core Models ================
+ */
 
 model Product {
   id        Int      @id @default(autoincrement())
@@ -22,31 +34,36 @@ model Product {
 }
 
 model User {
-  id        Int      @id @default(autoincrement())
-  email     String   @unique
-  name      String
-  points    Int      @default(0)                 // Hari-4 transfer points
-  createdAt DateTime @default(now())
+  id           Int      @id @default(autoincrement())
+  email        String   @unique
+  name         String
+  passwordHash String // bcrypt hash
+  role         Role     @default(USER) // authorization
+  points       Int      @default(0)
+  createdAt    DateTime @default(now())
 
-  posts     Post[]
-  orders    Order[]
+  // password reset (encrypted token)
+  resetTokenEnc String?
+  resetTokenExp DateTime?
 
-  // audit transfer (opsional)
-  sentTransfers     Transfer[] @relation("FromUser")
-  receivedTransfers Transfer[] @relation("ToUser")
+  posts             Post[]
+  orders            Order[]
+  sentTransfers     Transfer[]   @relation("FromUser")
+  receivedTransfers Transfer[]   @relation("ToUser")
+  ResetToken        ResetToken[]
 }
 
 model Post {
-  id        Int      @id @default(autoincrement())
+  id        Int       @id @default(autoincrement())
   title     String
   content   String
-  category  String   @default("general")         // Hari-3 filter kategori
-  published Boolean  @default(false)
+  category  String    @default("general")
+  published Boolean   @default(false)
   authorId  Int
-  author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  author    User      @relation(fields: [authorId], references: [id], onDelete: Cascade)
   comments  Comment[]
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
 }
 
 model Comment {
@@ -65,7 +82,9 @@ model Order {
   createdAt DateTime @default(now())
 }
 
-/* ============ HARI-4: TRANSFER POINTS ============ */
+/**
+ * ============== Day 4: Transfers ==============
+ */
 
 model Transfer {
   id         Int      @id @default(autoincrement())
@@ -74,18 +93,24 @@ model Transfer {
   amount     Int
   createdAt  DateTime @default(now())
 
-  fromUser User @relation("FromUser", fields: [fromUserId], references: [id])
-  toUser   User @relation("ToUser",   fields: [toUserId],   references: [id])
+  fromUser User @relation("FromUser", fields: [fromUserId], references: [id], onDelete: Cascade)
+  toUser   User @relation("ToUser", fields: [toUserId], references: [id], onDelete: Cascade)
 }
 
-/* ============ HARI-4: SUPPLIERS & STOCKS ============ */
+/**
+ * =========== Day 4/5: Suppliers & Stocks ===========
+ */
 
 model Supplier {
-  id        Int      @id @default(autoincrement())
-  name      String   @unique
-  createdAt DateTime @default(now())
+  id           Int      @id @default(autoincrement())
+  name         String   @unique
+  email        String   @unique
+  passwordHash String // bcrypt hash (day 5)
+  taxIdEnc     String? // AES-GCM encrypted
+  bankAccEnc   String? // AES-GCM encrypted
+  createdAt    DateTime @default(now())
 
-  products  SupplierProduct[]
+  products SupplierProduct[] // mapping stok/produk milik supplier
 }
 
 model SupplierProduct {
@@ -96,7 +121,21 @@ model SupplierProduct {
   updatedAt  DateTime @updatedAt
 
   supplier Supplier @relation(fields: [supplierId], references: [id], onDelete: Cascade)
-  product  Product  @relation(fields: [productId],  references: [id], onDelete: Cascade)
+  product  Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
 
   @@unique([supplierId, productId])
+}
+
+/**
+ * ======== Optional: store reset token history ========
+ */
+
+model ResetToken {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  tokenEnc  String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }

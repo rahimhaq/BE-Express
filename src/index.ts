@@ -1,35 +1,24 @@
 import express from "express";
 import cors from "cors";
-
-import productRoutes from "./routes/productRoutes";         // (dari hari sebelumnya)
-import orderRoutes from "./routes/orderRoutes";             // (dari hari sebelumnya)
-import postPrismaRoutes from "./routes/postPrismaRoutes";   // (dari hari sebelumnya)
-
-import transactionRoutes from "./routes/transactionRoutes"; // ← hari-4 CP1
-import supplierRoutes from "./routes/supplierRoutes";       // ← hari-4 CP2
-import userPointsRoutes from "./routes/userPointsRoutes";
-
 import { errorHandler } from "./middlewares/errorHandler";
+
+import authUserRoutes from "./routes/authUserRoutes";
+import authSupplierRoutes from "./routes/authSupplierRoutes";
+import supplierProductRoutes from "./routes/supplierProductRoutes";
+import productOwnerRoutes from "./routes/productOwnerRoutes";
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 
-// healthcheck
-app.get("/", (_req, res) => res.json({ message: "API up ✅" }));
+app.get("/", (_req, res) => res.json({ ok: true }));
 
-// existing mounts
-app.use("/api/products", productRoutes);
-app.use("/api/orders", orderRoutes);
-app.use("/api/posts", postPrismaRoutes);
+app.use("/api", authUserRoutes);               // /register, /login, /password-reset, /me, /admin-only
+app.use("/api/suppliers", authSupplierRoutes); // /register, /login (supplier)
+app.use("/api", supplierProductRoutes);        // /suppliers/products, /products/add
+app.use("/api", productOwnerRoutes);           // /products/:id (PATCH owner-only)
 
-// day-4 mounts
-app.use("/api", transactionRoutes);            // /api/transfer-points
-app.use("/api/suppliers", supplierRoutes);     // /api/suppliers/stock
-app.use("/api/users", userPointsRoutes);
-
-// error middleware (HARUS terakhir)
 app.use(errorHandler);
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));
+app.listen(PORT, () => console.log(`API up on http://localhost:${PORT}`));
